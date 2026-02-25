@@ -17,7 +17,8 @@ import java.time.LocalDateTime;
 public class Theater {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "theater_seq")
+    @SequenceGenerator(name = "theater_seq", sequenceName = "theaters_id_seq", allocationSize = 1)
     private Long id;
 
     @Column(nullable = false)
@@ -36,4 +37,16 @@ public class Theater {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }
