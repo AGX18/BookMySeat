@@ -26,7 +26,7 @@ CREATE TABLE theaters (
     address    VARCHAR(255) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-
+    CONSTRAINT unique_theater_name_city UNIQUE (name, city)
 );
 
 CREATE TABLE screens (

@@ -12,6 +12,10 @@ import java.util.List;
 @Repository
 public interface ShowtimeRepository extends JpaRepository<Showtime, Long> {
 
+    Integer seatsPerRow = 8;
+
+    char[] rows = {'A', 'B', 'C',  'D', 'E', 'F', 'G', 'H'};
+
     List<Showtime> findByMovieId(Long movieId);
 
     List<Showtime> findByScreenId(Long screenId);
