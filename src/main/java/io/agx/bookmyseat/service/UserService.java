@@ -1,8 +1,13 @@
 package io.agx.bookmyseat.service;
 
+import io.agx.bookmyseat.dto.request.CreateUserRequest;
+import io.agx.bookmyseat.dto.response.UserResponse;
 import io.agx.bookmyseat.entity.User;
+import io.agx.bookmyseat.exception.EmailAlreadyExistsException;
+import io.agx.bookmyseat.exception.ResourceNotFoundException;
 import io.agx.bookmyseat.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,25 +20,36 @@ import java.util.UUID;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
-    public Optional<User> getUserById(UUID id) {
-        return userRepository.findById(id);
+    public UserResponse getUserById(UUID id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User", id));
+        return UserResponse.from(user);
     }
 
-    public Optional<User> getUserByEmail(String email) {
-        return userRepository.findByEmail(email);
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email).orElseThrow(
+                () -> new ResourceNotFoundException("User that has email " + email +  " does not exist")
+        );
     }
 
     @Transactional
-    public User createUser(User user) {
-        if (userRepository.existsByEmail(user.getEmail())) {
-            throw new IllegalArgumentException("Email already in use: " + user.getEmail());
+    public UserResponse createUser(CreateUserRequest request) {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new EmailAlreadyExistsException(request.getEmail());
         }
-        return userRepository.save(user);
+        User user = User.builder()
+                .name(request.getName())
+                .email(request.getEmail())
+                .passwordHash(passwordEncoder.encode(request.getPassword()))
+                .build();
+
+        return UserResponse.from(userRepository.save(user));
     }
 
     @Transactional

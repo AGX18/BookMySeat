@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Table(name = "theaters",
         uniqueConstraints = @UniqueConstraint(
                 name = "unique_theater_name_city",
-                columnNames = {"name", "city"}
+                columnNames = {"name", "branch"}
         )
 )
 @Getter
@@ -28,6 +28,9 @@ public class Theater {
 
     @Column(nullable = false)
     private String name;
+
+    @Column(nullable = false)
+    private String branch;     // e.g., "Almaza City Center" or "Mall of Egypt"
 
     @Column(nullable = false, length = 100)
     private String city;

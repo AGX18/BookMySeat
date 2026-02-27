@@ -28,7 +28,7 @@ public class TheaterService {
     }
 
     public Theater createTheater(Theater theater) {
-        if (theaterRepository.existsByNameAndCity(theater.getName(), theater.getCity())) {
+        if (theaterRepository.existsByNameAndBranch(theater.getName(), theater.getBranch())) {
             throw new IllegalArgumentException("Theater already exists in this city: " + theater.getName());
         }
         return theaterRepository.save(theater);

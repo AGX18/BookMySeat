@@ -24,7 +24,7 @@ public interface SeatRepository extends JpaRepository<Seat, Long> {
             SELECT s FROM Seat s
             WHERE s.showtime.id = :showtimeId
             AND s.id IN :seatIds
-            AND s.status = 'AVAILABLE'
+            AND s.status = io.agx.bookmyseat.entity.SeatStatus.AVAILABLE
             """)
     List<Seat> findAvailableSeatsByIds(@Param("showtimeId") Long showtimeId,
                                        @Param("seatIds") List<Long> seatIds);

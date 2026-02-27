@@ -30,5 +30,13 @@ public class User {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp    // override on update
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
 }
 

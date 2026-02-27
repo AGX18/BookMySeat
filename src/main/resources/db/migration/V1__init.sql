@@ -3,7 +3,7 @@ CREATE TABLE users (
     name        VARCHAR(100) NOT NULL,
     email       VARCHAR(255) NOT NULL UNIQUE,
     created_at  TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP ,
     password_hash VARCHAR(255) NOT NULL
 );
 
@@ -15,18 +15,18 @@ CREATE TABLE movies (
     release_date  DATE NOT NULL,
     genre         VARCHAR(50),
     created_at    TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-
+    updated_at TIMESTAMP DEFAULT NOW()
 );
 
 CREATE TABLE theaters (
     id         BIGSERIAL PRIMARY KEY,
     name       VARCHAR(255) NOT NULL,
+    branch     VARCHAR(255) NOT NULL,
     city       VARCHAR(100) NOT NULL,
     address    VARCHAR(255) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-    CONSTRAINT unique_theater_name_city UNIQUE (name, city)
+    updated_at TIMESTAMP DEFAULT NOW(),
+    CONSTRAINT unique_theater_name_city UNIQUE (name, branch)
 );
 
 CREATE TABLE screens (
@@ -34,7 +34,7 @@ CREATE TABLE screens (
      theater_id BIGINT NOT NULL REFERENCES theaters(id),
      name       VARCHAR(50) NOT NULL,
      created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-     updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+     updated_at TIMESTAMP DEFAULT NOW()
 );
 
 CREATE TABLE showtimes (
@@ -44,7 +44,7 @@ CREATE TABLE showtimes (
     start_time TIMESTAMP NOT NULL,
     end_time   TIMESTAMP NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    updated_at TIMESTAMP DEFAULT NOW()
 );
 
 CREATE TABLE seats (
@@ -55,7 +55,7 @@ CREATE TABLE seats (
     status      VARCHAR(20) NOT NULL DEFAULT 'AVAILABLE',
     version     INT NOT NULL DEFAULT 0,
     UNIQUE (showtime_id, row, number),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    updated_at TIMESTAMP DEFAULT NOW()
 );
 
 
@@ -67,7 +67,7 @@ CREATE TABLE bookings (
     status          VARCHAR(20) NOT NULL DEFAULT 'CONFIRMED',
     version         INT NOT NULL DEFAULT 0,
     created_at      TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    updated_at TIMESTAMP DEFAULT NOW()
 );
 
 CREATE TABLE booking_seats (

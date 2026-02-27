@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface TheaterRepository extends JpaRepository<Theater, Long> {
@@ -13,5 +14,8 @@ public interface TheaterRepository extends JpaRepository<Theater, Long> {
 
     List<Theater> findByCityIgnoreCase(String city);
 
-    boolean existsByNameAndCity(String name, String city);
+    Optional<Theater> findByNameAndBranch(String name, String branch);
+
+    boolean existsByNameAndBranch(String name, String branch);
+
 }
