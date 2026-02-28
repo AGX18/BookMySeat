@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ScreenRepository extends JpaRepository<Screen, Long> {
@@ -12,4 +13,6 @@ public interface ScreenRepository extends JpaRepository<Screen, Long> {
     List<Screen> findByTheaterId(Long theaterId);
 
     boolean existsByNameAndTheaterId(String name, Long theaterId);
+
+    Optional<Screen> findByIdAndTheaterId(Long id, Long theaterId);
 }

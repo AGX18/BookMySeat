@@ -1,6 +1,12 @@
 package io.agx.bookmyseat.service;
 
+import io.agx.bookmyseat.dto.request.CreateTheaterRequest;
+import io.agx.bookmyseat.dto.response.ScreenResponse;
+import io.agx.bookmyseat.dto.response.TheaterResponse;
+import io.agx.bookmyseat.entity.Screen;
 import io.agx.bookmyseat.entity.Theater;
+import io.agx.bookmyseat.exception.DuplicateResourceException;
+import io.agx.bookmyseat.exception.ResourceNotFoundException;
 import io.agx.bookmyseat.repository.TheaterRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,35 +21,50 @@ public class TheaterService {
 
     private final TheaterRepository theaterRepository;
 
-    public List<Theater> getAllTheaters() {
-        return theaterRepository.findAll();
+    public List<TheaterResponse> getAllTheaters() {
+        return theaterRepository.findAll()
+                .stream()
+                .map(TheaterResponse::from)
+                .toList();
     }
 
-    public Optional<Theater> getTheaterById(Long id) {
-        return theaterRepository.findById(id);
+    public TheaterResponse getTheaterById(Long id) {
+        Theater theater = theaterRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Screen", id));
+        return TheaterResponse.from(theater);
     }
 
-    public List<Theater> getTheatersByCity(String city) {
-        return theaterRepository.findByCityIgnoreCase(city);
+    public List<TheaterResponse> getTheatersByCity(String city) {
+        return theaterRepository.findByCityIgnoreCase(city)
+                .stream()
+                .map(TheaterResponse::from)
+                .toList();
     }
 
-    public Theater createTheater(Theater theater) {
-        if (theaterRepository.existsByNameAndBranch(theater.getName(), theater.getBranch())) {
-            throw new IllegalArgumentException("Theater already exists in this city: " + theater.getName());
+
+    @Transactional
+    public TheaterResponse createTheater(CreateTheaterRequest request) {
+        if (theaterRepository.existsByNameAndBranch(request.getName(), request.getBranch())) {
+            throw new DuplicateResourceException("Theater branch already exists");
         }
-        return theaterRepository.save(theater);
+        Theater theater = Theater.builder()
+                .name(request.getName())
+                .branch(request.getBranch())
+                .city(request.getCity())
+                .address(request.getAddress())
+                .build();
+        return TheaterResponse.from(theaterRepository.save(theater));
     }
 
     @Transactional
-    public Theater updateTheater(Long id, Theater updated) {
-        Theater existing = theaterRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Theater not found: " + id));
-
-        existing.setName(updated.getName());
-        existing.setCity(updated.getCity());
-        existing.setAddress(updated.getAddress());
-
-        return theaterRepository.save(existing);
+    public TheaterResponse updateTheater(Long id, CreateTheaterRequest request) {
+        Theater theater = theaterRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Theater", id));
+        theater.setName(request.getName());
+        theater.setBranch(request.getBranch());
+        theater.setCity(request.getCity());
+        theater.setAddress(request.getAddress());
+        return TheaterResponse.from(theaterRepository.save(theater));
     }
 
     @Transactional
