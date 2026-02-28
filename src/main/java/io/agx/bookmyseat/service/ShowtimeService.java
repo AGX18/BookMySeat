@@ -1,8 +1,12 @@
 package io.agx.bookmyseat.service;
 
+import io.agx.bookmyseat.dto.request.CreateShowtimeRequest;
+import io.agx.bookmyseat.dto.response.SeatResponse;
+import io.agx.bookmyseat.dto.response.ShowtimeResponse;
 import io.agx.bookmyseat.entity.Movie;
 import io.agx.bookmyseat.entity.Screen;
 import io.agx.bookmyseat.entity.Showtime;
+import io.agx.bookmyseat.exception.ResourceNotFoundException;
 import io.agx.bookmyseat.repository.MovieRepository;
 import io.agx.bookmyseat.repository.ScreenRepository;
 import io.agx.bookmyseat.repository.ShowtimeRepository;
@@ -11,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -24,8 +29,10 @@ public class ShowtimeService {
     private final ScreenRepository screenRepository;
     private final SeatService  seatService;
 
-    public Optional<Showtime> getShowtimeById(Long id) {
-        return showtimeRepository.findById(id);
+    public ShowtimeResponse getShowtimeById(Long id) {
+        Showtime showtime = showtimeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Showtime", id));
+        return ShowtimeResponse.from(showtime);
     }
 
     public List<Showtime> getShowtimesByMovie(Long movieId) {
@@ -41,36 +48,48 @@ public class ShowtimeService {
     }
 
     @Transactional
-    public Showtime createShowtime(Long movieId, Long screenId, LocalDateTime startTime) {
-        Movie movie = movieRepository.findById(movieId)
-                .orElseThrow(() -> new IllegalArgumentException("Movie not found: " + movieId));
+    public ShowtimeResponse createShowtime(CreateShowtimeRequest request) {
+        Movie movie = movieRepository.findById(request.getMovieId())
+                .orElseThrow(() -> new ResourceNotFoundException("Movie", request.getMovieId()));
 
-        Screen screen = screenRepository.findById(screenId)
-                .orElseThrow(() -> new IllegalArgumentException("Screen not found: " + screenId));
+        Screen screen = screenRepository.findById(request.getScreenId())
+                .orElseThrow(() -> new ResourceNotFoundException("Screen", request.getScreenId()));
 
-        LocalDateTime endTime = startTime.plusMinutes(movie.getDurationMins());
+        LocalDateTime endTime = request.getStartTime().plusMinutes(movie.getDurationMins());
 
-        if (showtimeRepository.existsOverlappingShowtime(screenId, startTime, endTime)) {
-            throw new IllegalStateException("Screen already has a showtime during this period");
+
+        if (showtimeRepository.existsOverlappingShowtime(request.getScreenId(), request.getStartTime(), endTime)) {
+            throw new IllegalArgumentException("Showtime overlaps with an existing showtime on this screen");
         }
 
         Showtime showtime = Showtime.builder()
                 .movie(movie)
                 .screen(screen)
-                .startTime(startTime)
+                .startTime(request.getStartTime())
                 .endTime(endTime)
                 .build();
 
+        showtime = showtimeRepository.save(showtime);
+
         seatService.createSeatsForShowtime(showtime.getId(), ShowtimeRepository.rows, ShowtimeRepository.seatsPerRow);
 
+        return ShowtimeResponse.from(showtime);
+    }
 
-        return showtimeRepository.save(showtime);
+    public List<ShowtimeResponse> getShowtimes(Long movieId, Long screenId, Long theaterId, LocalDate date) {
+        return showtimeRepository.findAll().stream()
+                .filter(s -> movieId == null || s.getMovie().getId().equals(movieId))
+                .filter(s -> screenId == null || s.getScreen().getId().equals(screenId))
+                .filter(s -> theaterId == null || s.getScreen().getTheater().getId().equals(theaterId))
+                .filter(s -> date == null || s.getStartTime().toLocalDate().equals(date))
+                .map(ShowtimeResponse::from)
+                .toList();
     }
 
     @Transactional
     public void deleteShowtime(Long id) {
         if (!showtimeRepository.existsById(id)) {
-            throw new IllegalArgumentException("Showtime not found: " + id);
+            throw new ResourceNotFoundException("Showtime", id);
         }
         showtimeRepository.deleteById(id);
     }

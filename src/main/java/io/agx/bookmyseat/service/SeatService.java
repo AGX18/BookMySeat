@@ -1,8 +1,10 @@
 package io.agx.bookmyseat.service;
 
+import io.agx.bookmyseat.dto.response.SeatResponse;
 import io.agx.bookmyseat.entity.Seat;
 import io.agx.bookmyseat.entity.SeatStatus;
 import io.agx.bookmyseat.entity.Showtime;
+import io.agx.bookmyseat.exception.ResourceNotFoundException;
 import io.agx.bookmyseat.repository.SeatRepository;
 import io.agx.bookmyseat.repository.ShowtimeRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,20 +22,38 @@ public class SeatService {
     private final SeatRepository seatRepository;
     private final ShowtimeRepository showtimeRepository;
 
-    public List<Seat> getSeatsByShowtime(Long showtimeId) {
-        return seatRepository.findByShowtimeId(showtimeId);
+    public List<SeatResponse> getSeatsByShowtime(Long showtimeId) {
+        if (!showtimeRepository.existsById(showtimeId)) {
+            throw new ResourceNotFoundException("Showtime", showtimeId);
+        }
+        return seatRepository.findByShowtimeId(showtimeId)
+                .stream()
+                .map(SeatResponse::from)
+                .toList();
     }
 
-    public List<Seat> getAvailableSeatsByShowtime(Long showtimeId) {
-        return seatRepository.findByShowtimeIdAndStatus(showtimeId, SeatStatus.AVAILABLE);
+    public List<SeatResponse> getAvailableSeatsByShowtime(Long showtimeId) {
+        if (!showtimeRepository.existsById(showtimeId)) {
+            throw new ResourceNotFoundException("Showtime", showtimeId);
+        }
+        return seatRepository.findByShowtimeIdAndStatus(showtimeId, SeatStatus.AVAILABLE)
+                .stream()
+                .map(SeatResponse::from)
+                .toList();
     }
 
-    public Optional<Seat> getSeatById(Long id) {
-        return seatRepository.findById(id);
+    public SeatResponse getSeatById(Long id) {
+        if (!seatRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Seat", id);
+        }
+        Seat seat = seatRepository.findById(id).orElseThrow(
+                ()  -> new ResourceNotFoundException("Seat", id)
+        );
+        return SeatResponse.from(seat);
     }
 
     @Transactional
-    public List<Seat> createSeatsForShowtime(Long showtimeId, char[] rows, int seatsPerRow) {
+    public void createSeatsForShowtime(Long showtimeId, char[] rows, int seatsPerRow) {
         Showtime showtime = showtimeRepository.findById(showtimeId)
                 .orElseThrow(() -> new IllegalArgumentException("Showtime not found: " + showtimeId));
 
@@ -50,7 +70,7 @@ public class SeatService {
             }
         }
 
-        return seatRepository.saveAll(seats);
+        seatRepository.saveAll(seats);
     }
 
     @Transactional
