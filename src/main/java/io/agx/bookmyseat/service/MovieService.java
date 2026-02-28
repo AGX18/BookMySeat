@@ -1,7 +1,11 @@
 package io.agx.bookmyseat.service;
 
+import io.agx.bookmyseat.dto.request.CreateMovieRequest;
+import io.agx.bookmyseat.dto.response.MovieResponse;
 import io.agx.bookmyseat.entity.Movie;
+import io.agx.bookmyseat.exception.ResourceNotFoundException;
 import io.agx.bookmyseat.repository.MovieRepository;
+import io.agx.bookmyseat.specification.MovieSpecification;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,12 +21,25 @@ public class MovieService {
 
     private final MovieRepository movieRepository;
 
+    public MovieResponse createMovie(CreateMovieRequest request) {
+        Movie movie = Movie.builder()
+                .title(request.getTitle())
+                .description(request.getDescription())
+                .durationMins(request.getDurationMins())
+                .releaseDate(request.getReleaseDate())
+                .genre(request.getGenre())
+                .build();
+        return MovieResponse.from(movieRepository.save(movie));
+    }
+
     public List<Movie> getAllMovies() {
         return movieRepository.findAll();
     }
 
-    public Optional<Movie> getMovieById(Long id) {
-        return movieRepository.findById(id);
+    public MovieResponse getMovieById(Long id) {
+        Movie movie = movieRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Movie", id));
+        return MovieResponse.from(movie);
     }
 
     public List<Movie> getMoviesByGenre(String genre) {
@@ -37,12 +54,9 @@ public class MovieService {
         return movieRepository.findByReleaseDateAfter(LocalDate.now());
     }
 
-    public Movie createMovie(Movie movie) {
-        return movieRepository.save(movie);
-    }
 
     @Transactional
-    public Movie updateMovie(Long id, Movie updated) {
+    public MovieResponse updateMovie(Long id, CreateMovieRequest updated) {
         Movie existing = movieRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Movie not found: " + id));
 
@@ -52,7 +66,14 @@ public class MovieService {
         existing.setReleaseDate(updated.getReleaseDate());
         existing.setGenre(updated.getGenre());
 
-        return movieRepository.save(existing);
+        return MovieResponse.from(movieRepository.save(existing));
+    }
+
+    public List<MovieResponse> getMovies(String genre, String title, LocalDate releasedAfter) {
+        return movieRepository.findAll(MovieSpecification.filter(genre, title, releasedAfter))
+                .stream()
+                .map(MovieResponse::from)
+                .toList();
     }
 
     @Transactional
@@ -62,4 +83,6 @@ public class MovieService {
         }
         movieRepository.deleteById(id);
     }
+
+
 }
