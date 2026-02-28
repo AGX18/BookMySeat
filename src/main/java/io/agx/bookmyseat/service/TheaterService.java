@@ -1,9 +1,7 @@
 package io.agx.bookmyseat.service;
 
 import io.agx.bookmyseat.dto.request.CreateTheaterRequest;
-import io.agx.bookmyseat.dto.response.ScreenResponse;
 import io.agx.bookmyseat.dto.response.TheaterResponse;
-import io.agx.bookmyseat.entity.Screen;
 import io.agx.bookmyseat.entity.Theater;
 import io.agx.bookmyseat.exception.DuplicateResourceException;
 import io.agx.bookmyseat.exception.ResourceNotFoundException;
@@ -13,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +19,31 @@ public class TheaterService {
     private final TheaterRepository theaterRepository;
 
     public List<TheaterResponse> getAllTheaters() {
+        return theaterRepository.findAll()
+                .stream()
+                .map(TheaterResponse::from)
+                .toList();
+    }
+
+    public List<TheaterResponse> getAllTheaters(String city, String name) {
+        if (city != null && name != null) {
+            return theaterRepository.findByCityIgnoreCaseAndNameContainingIgnoreCase(city, name)
+                    .stream()
+                    .map(TheaterResponse::from)
+                    .toList();
+        }
+        if (city != null) {
+            return theaterRepository.findByCityIgnoreCase(city)
+                    .stream()
+                    .map(TheaterResponse::from)
+                    .toList();
+        }
+        if (name != null) {
+            return theaterRepository.findByNameContainingIgnoreCase(name)
+                    .stream()
+                    .map(TheaterResponse::from)
+                    .toList();
+        }
         return theaterRepository.findAll()
                 .stream()
                 .map(TheaterResponse::from)

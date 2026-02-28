@@ -4,6 +4,7 @@ import io.agx.bookmyseat.entity.Theater;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,4 +19,7 @@ public interface TheaterRepository extends JpaRepository<Theater, Long> {
 
     boolean existsByNameAndBranch(String name, String branch);
 
+    List<Theater> findByNameContainingIgnoreCase(String name);
+
+    List<Theater> findByCityIgnoreCaseAndNameContainingIgnoreCase(String city, String name);
 }

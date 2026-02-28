@@ -28,8 +28,10 @@ public class TheaterController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TheaterResponse>> getAllTheaters() {
-        return ResponseEntity.ok(theaterService.getAllTheaters());
+    public ResponseEntity<List<TheaterResponse>> getAllTheaters(
+            @RequestParam(required = false) String city,
+            @RequestParam(required = false) String name) {
+        return ResponseEntity.ok(theaterService.getAllTheaters(city, name));
     }
 
     @GetMapping("/{id}")
