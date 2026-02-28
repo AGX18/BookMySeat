@@ -1,16 +1,16 @@
 package io.agx.bookmyseat.service;
 
 import io.agx.bookmyseat.dto.request.CreateShowtimeRequest;
-import io.agx.bookmyseat.dto.response.SeatResponse;
 import io.agx.bookmyseat.dto.response.ShowtimeResponse;
 import io.agx.bookmyseat.entity.Movie;
 import io.agx.bookmyseat.entity.Screen;
 import io.agx.bookmyseat.entity.Showtime;
 import io.agx.bookmyseat.exception.ResourceNotFoundException;
+import io.agx.bookmyseat.exception.ShowtimeOverlapException;
 import io.agx.bookmyseat.repository.MovieRepository;
 import io.agx.bookmyseat.repository.ScreenRepository;
 import io.agx.bookmyseat.repository.ShowtimeRepository;
-import io.agx.bookmyseat.service.SeatService;
+import io.agx.bookmyseat.specification.ShowtimeSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -35,17 +34,6 @@ public class ShowtimeService {
         return ShowtimeResponse.from(showtime);
     }
 
-    public List<Showtime> getShowtimesByMovie(Long movieId) {
-        return showtimeRepository.findByMovieId(movieId);
-    }
-
-    public List<Showtime> getShowtimesByScreen(Long screenId) {
-        return showtimeRepository.findByScreenId(screenId);
-    }
-
-    public List<Showtime> getUpcomingShowtimesForMovie(Long movieId) {
-        return showtimeRepository.findUpcomingShowtimesForMovie(movieId, LocalDateTime.now());
-    }
 
     @Transactional
     public ShowtimeResponse createShowtime(CreateShowtimeRequest request) {
@@ -59,7 +47,7 @@ public class ShowtimeService {
 
 
         if (showtimeRepository.existsOverlappingShowtime(request.getScreenId(), request.getStartTime(), endTime)) {
-            throw new IllegalArgumentException("Showtime overlaps with an existing showtime on this screen");
+            throw new ShowtimeOverlapException();
         }
 
         Showtime showtime = Showtime.builder()
@@ -77,11 +65,8 @@ public class ShowtimeService {
     }
 
     public List<ShowtimeResponse> getShowtimes(Long movieId, Long screenId, Long theaterId, LocalDate date) {
-        return showtimeRepository.findAll().stream()
-                .filter(s -> movieId == null || s.getMovie().getId().equals(movieId))
-                .filter(s -> screenId == null || s.getScreen().getId().equals(screenId))
-                .filter(s -> theaterId == null || s.getScreen().getTheater().getId().equals(theaterId))
-                .filter(s -> date == null || s.getStartTime().toLocalDate().equals(date))
+        return showtimeRepository.findAll(ShowtimeSpecification.filter(movieId, screenId, theaterId, date))
+                .stream()
                 .map(ShowtimeResponse::from)
                 .toList();
     }

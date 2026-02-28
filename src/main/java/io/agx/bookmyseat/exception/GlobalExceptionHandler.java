@@ -51,4 +51,13 @@ public class GlobalExceptionHandler {
                 "error", ex.getMessage()
         ));
     }
+
+    @ExceptionHandler(ShowtimeOverlapException.class)
+    public ResponseEntity<Map<String, Object>> handleShowtimeOverlap(ShowtimeOverlapException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
+                "timestamp", LocalDateTime.now(),
+                "status", 409,
+                "error", ex.getMessage()
+        ));
+    }
 }

@@ -2,6 +2,7 @@ package io.agx.bookmyseat.repository;
 
 import io.agx.bookmyseat.entity.Showtime;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -10,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
-public interface ShowtimeRepository extends JpaRepository<Showtime, Long> {
+public interface ShowtimeRepository extends JpaRepository<Showtime, Long>, JpaSpecificationExecutor<Showtime> {
 
     Integer seatsPerRow = 8;
 
