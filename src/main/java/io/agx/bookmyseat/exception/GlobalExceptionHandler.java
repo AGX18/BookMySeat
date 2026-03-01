@@ -60,4 +60,42 @@ public class GlobalExceptionHandler {
                 "error", ex.getMessage()
         ));
     }
+
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, Object>> handleShowtimeOverlap(IllegalArgumentException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
+                "timestamp", LocalDateTime.now(),
+                "status", 409,
+                "error", ex.getMessage()
+        ));
+    }
+
+    @ExceptionHandler(ShowtimeAlreadyStartedException.class)
+    public ResponseEntity<Map<String, Object>> handleShowtimeAlreadyStarted(ShowtimeAlreadyStartedException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
+                "timestamp", LocalDateTime.now(),
+                "status", 409,
+                "error", ex.getMessage()
+        ));
+    }
+
+    @ExceptionHandler(BookingAlreadyCancelledException.class)
+    public ResponseEntity<Map<String, Object>> handleBookingAlreadyCancelled(BookingAlreadyCancelledException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
+                "timestamp", LocalDateTime.now(),
+                "status", 409,
+                "error", ex.getMessage()
+        ));
+    }
+
+    @ExceptionHandler(SeatsNotAvailableException.class)
+    public ResponseEntity<Map<String, Object>> handleSeatsNotAvailable(SeatsNotAvailableException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
+                "timestamp", LocalDateTime.now(),
+                "status", 409,
+                "error", ex.getMessage()
+        ));
+    }
+
 }

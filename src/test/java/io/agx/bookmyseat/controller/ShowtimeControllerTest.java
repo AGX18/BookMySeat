@@ -49,7 +49,6 @@ class ShowtimeControllerTest {
     @BeforeEach
     void setUp() {
         LocalDateTime startTime = LocalDateTime.now().plusDays(1);
-        LocalDateTime endTime = startTime.plusHours(2);
 
         createRequest = CreateShowtimeRequest.builder()
                 .movieId(1L)
