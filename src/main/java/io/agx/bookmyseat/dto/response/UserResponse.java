@@ -1,5 +1,6 @@
 package io.agx.bookmyseat.dto.response;
 
+import io.agx.bookmyseat.entity.Role;
 import io.agx.bookmyseat.entity.User;
 import lombok.Builder;
 import lombok.Data;
@@ -15,6 +16,7 @@ public class UserResponse {
     private String name;
     private String email;
     private LocalDateTime createdAt;
+    private Role role;
 
     public static UserResponse from(User user) {
         return UserResponse.builder()
@@ -22,6 +24,7 @@ public class UserResponse {
                 .name(user.getName())
                 .email(user.getEmail())
                 .createdAt(user.getCreatedAt())
+                .role(user.getRole())
                 .build();
     }
 }

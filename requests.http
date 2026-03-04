@@ -1,0 +1,25 @@
+### Register a user
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "password123"
+}
+
+### Login
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "password": "password123"
+}
+
+### Get user by email (protected)
+GET http://localhost:8080/api/users?email=john@example.com
+Authorization: Bearer {{token}}
+
+### Get movies (public)
+GET http://localhost:8080/api/movies
