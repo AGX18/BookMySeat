@@ -2,6 +2,7 @@ package io.agx.bookmyseat.service;
 
 import io.agx.bookmyseat.dto.request.CreateUserRequest;
 import io.agx.bookmyseat.dto.response.UserResponse;
+import io.agx.bookmyseat.entity.Role;
 import io.agx.bookmyseat.entity.User;
 import io.agx.bookmyseat.exception.EmailAlreadyExistsException;
 import io.agx.bookmyseat.exception.ResourceNotFoundException;
@@ -12,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -47,6 +47,7 @@ public class UserService {
                 .name(request.getName())
                 .email(request.getEmail())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
+                .role(Role.USER)
                 .build();
 
         return UserResponse.from(userRepository.save(user));
@@ -59,4 +60,6 @@ public class UserService {
         }
         userRepository.deleteById(id);
     }
+
+
 }
