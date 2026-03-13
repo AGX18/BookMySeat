@@ -3,6 +3,7 @@ package io.agx.bookmyseat.controller;
 import io.agx.bookmyseat.dto.request.CreateMovieRequest;
 import io.agx.bookmyseat.dto.response.MovieResponse;
 import io.agx.bookmyseat.service.MovieService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -29,6 +30,7 @@ public class MovieController {
 
 
     @PostMapping
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<MovieResponse> createMovie(@Valid @RequestBody CreateMovieRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(movieService.createMovie(request));
     }
@@ -39,11 +41,13 @@ public class MovieController {
     }
 
     @PutMapping("/{id}")
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<MovieResponse> updateMovie(@PathVariable Long id, @Valid @RequestBody CreateMovieRequest request) {
         return ResponseEntity.ok(movieService.updateMovie(id, request));
     }
 
     @DeleteMapping("/{id}")
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<Void> deleteMovie(@PathVariable Long id) {
         movieService.deleteMovie(id);
         return ResponseEntity.noContent().build();

@@ -6,6 +6,7 @@ import io.agx.bookmyseat.dto.response.ScreenResponse;
 import io.agx.bookmyseat.dto.response.TheaterResponse;
 import io.agx.bookmyseat.service.ScreenService;
 import io.agx.bookmyseat.service.TheaterService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -23,6 +24,7 @@ public class TheaterController {
 
 
     @PostMapping
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<TheaterResponse> createTheater(@Valid @RequestBody CreateTheaterRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(theaterService.createTheater(request));
     }
@@ -40,11 +42,13 @@ public class TheaterController {
     }
 
     @PutMapping("/{id}")
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<TheaterResponse> updateTheater(@PathVariable Long id, @Valid @RequestBody CreateTheaterRequest request) {
         return ResponseEntity.ok(theaterService.updateTheater(id, request));
     }
 
     @DeleteMapping("/{id}")
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<Void> deleteTheater(@PathVariable Long id) {
         theaterService.deleteTheater(id);
         return ResponseEntity.noContent().build();
@@ -53,6 +57,7 @@ public class TheaterController {
 
 
     @PostMapping("/{id}/screens")
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<ScreenResponse> addScreen(@PathVariable Long id, @Valid @RequestBody CreateScreenRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(screenService.createScreen(id, request));
     }
@@ -68,11 +73,13 @@ public class TheaterController {
     }
 
     @PutMapping("/{theaterId}/screens/{screenId}")
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<ScreenResponse> updateScreen(@PathVariable Long theaterId, @PathVariable Long screenId, @Valid @RequestBody CreateScreenRequest request) {
         return ResponseEntity.ok(screenService.updateScreen(theaterId, screenId, request));
     }
 
     @DeleteMapping("/{theaterId}/screens/{screenId}")
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<Void> deleteScreen(@PathVariable Long theaterId, @PathVariable Long screenId) {
         screenService.deleteScreen(theaterId, screenId);
         return ResponseEntity.noContent().build();

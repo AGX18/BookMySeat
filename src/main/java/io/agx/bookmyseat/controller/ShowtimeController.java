@@ -5,6 +5,7 @@ import io.agx.bookmyseat.dto.response.SeatResponse;
 import io.agx.bookmyseat.dto.response.ShowtimeResponse;
 import io.agx.bookmyseat.service.SeatService;
 import io.agx.bookmyseat.service.ShowtimeService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -24,6 +25,7 @@ public class ShowtimeController {
     private final SeatService seatService;
 
     @PostMapping
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<ShowtimeResponse> createShowtime(@Valid @RequestBody CreateShowtimeRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(showtimeService.createShowtime(request));
     }
@@ -43,6 +45,8 @@ public class ShowtimeController {
     }
 
     @DeleteMapping("/{id}")
+    @SecurityRequirement(name = "bearerAuth")
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<Void> deleteShowtime(@PathVariable Long id) {
         showtimeService.deleteShowtime(id);
         return ResponseEntity.noContent().build();
