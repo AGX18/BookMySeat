@@ -23,11 +23,14 @@ resource "aws_ecr_repository" "app" {
 # VPC
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
+
+  enable_dns_support   = true
+  enable_dns_hostnames = true
+
   tags = {
     Name = "bookmyseat-vpc"
   }
 }
-
 # Subnet 1
 resource "aws_subnet" "subnet1" {
   vpc_id            = aws_vpc.main.id
@@ -190,14 +193,37 @@ resource "aws_ecs_task_definition" "task" {
 
   container_definitions = jsonencode([
     {
-      name      = "bookmyseat"
-      image     = "366707332695.dkr.ecr.us-east-1.amazonaws.com/bookmyshow-app:latest"
-      essential = true
+      name  = "bookmyseat"
+      image = "366707332695.dkr.ecr.us-east-1.amazonaws.com/bookmyshow-app:latest"
 
       portMappings = [
         {
           containerPort = 8080
           hostPort      = 8080
+        }
+      ]
+
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group         = "/ecs/bookmyseat"
+          awslogs-region        = "us-east-1"
+          awslogs-stream-prefix = "ecs"
+        }
+      }
+
+      secrets = [
+        {
+          name      = "SPRING_DATASOURCE_USERNAME"
+          valueFrom = "${aws_secretsmanager_secret.db_secret.arn}:username::"
+        },
+        {
+          name      = "SPRING_DATASOURCE_PASSWORD"
+          valueFrom = "${aws_secretsmanager_secret.db_secret.arn}:password::"
+        },
+        {
+          name      = "SPRING_DATASOURCE_URL"
+          valueFrom = "${aws_secretsmanager_secret.db_secret.arn}:url::"
         }
       ]
     }
@@ -217,7 +243,7 @@ resource "aws_ecs_service" "service" {
       aws_subnet.subnet2.id
     ]
     assign_public_ip = true
-    security_groups  = [aws_security_group.alb_sg.id]
+    security_groups = [aws_security_group.ecs_sg.id]
   }
 
   load_balancer {
@@ -228,3 +254,116 @@ resource "aws_ecs_service" "service" {
 
   depends_on = [aws_lb_listener.listener]
 }
+
+resource "aws_db_subnet_group" "db_subnet" {
+  name = "bookmyseat-db-subnet"
+
+  subnet_ids = [
+    aws_subnet.subnet1.id,
+    aws_subnet.subnet2.id
+  ]
+
+  tags = {
+    Name = "bookmyseat-db-subnet"
+  }
+}
+
+resource "aws_security_group" "db_sg" {
+  name   = "bookmyseat-db-sg"
+  vpc_id = aws_vpc.main.id
+
+  ingress {
+    from_port   = 5432
+    to_port     = 5432
+    protocol    = "tcp"
+    security_groups = [aws_security_group.ecs_sg.id]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "bookmyseat-db-sg"
+  }
+}
+
+
+resource "aws_db_instance" "postgres" {
+  identifier         = "bookmyseat-db"
+  engine             = "postgres"
+  engine_version     = "15"
+  instance_class     = "db.t3.micro"
+
+  allocated_storage  = 20
+
+  username = "postgres"
+  password = "postgres123"
+
+  db_subnet_group_name   = aws_db_subnet_group.db_subnet.name
+  vpc_security_group_ids = [aws_security_group.db_sg.id]
+
+  skip_final_snapshot = true
+
+  publicly_accessible = true
+
+  tags = {
+    Name = "bookmyseat-db"
+  }
+}
+
+
+
+resource "aws_security_group" "ecs_sg" {
+  name   = "bookmyseat-ecs-sg"
+  vpc_id = aws_vpc.main.id
+
+  ingress {
+    from_port       = 8080
+    to_port         = 8080
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb_sg.id]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "bookmyseat-ecs-sg"
+  }
+}
+
+resource "aws_cloudwatch_log_group" "ecs_logs" {
+  name = "/ecs/bookmyseat"
+}
+
+
+resource "aws_secretsmanager_secret" "db_secret" {
+  name = "bookmyseat-db-secret"
+}
+
+resource "aws_iam_role_policy" "ecs_secrets_policy" {
+  name = "ecs-secrets-policy"
+  role = aws_iam_role.ecs_task_execution_role.name
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue"
+        ]
+        Resource = aws_secretsmanager_secret.db_secret.arn
+      }
+    ]
+  })
+}
+
