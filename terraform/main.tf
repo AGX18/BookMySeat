@@ -150,3 +150,81 @@ resource "aws_lb_listener" "listener" {
     target_group_arn = aws_lb_target_group.tg.arn
   }
 }
+
+resource "aws_iam_role" "ecs_task_execution_role" {
+  name = "bookmyseat-ecs-task-exec-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Service = "ecs-tasks.amazonaws.com"
+      }
+      Action = "sts:AssumeRole"
+    }]
+  })
+
+  tags = {
+    Name = "bookmyseat-ecs-task-exec-role"
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_exec_policy" {
+  role       = aws_iam_role.ecs_task_execution_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+
+resource "aws_ecs_cluster" "cluster" {
+  name = "bookmyseat-cluster"
+}
+
+resource "aws_ecs_task_definition" "task" {
+  family                   = "bookmyseat-task"
+  requires_compatibilities = ["FARGATE"]
+  network_mode             = "awsvpc"
+  cpu                      = "256"
+  memory                   = "512"
+  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
+
+  container_definitions = jsonencode([
+    {
+      name      = "bookmyseat"
+      image     = "366707332695.dkr.ecr.us-east-1.amazonaws.com/bookmyshow-app:latest"
+      essential = true
+
+      portMappings = [
+        {
+          containerPort = 8080
+          hostPort      = 8080
+        }
+      ]
+    }
+  ])
+}
+
+resource "aws_ecs_service" "service" {
+  name            = "bookmyseat-service"
+  cluster         = aws_ecs_cluster.cluster.id
+  task_definition = aws_ecs_task_definition.task.arn
+  desired_count   = 1
+  launch_type     = "FARGATE"
+
+  network_configuration {
+    subnets = [
+      aws_subnet.subnet1.id,
+      aws_subnet.subnet2.id
+    ]
+    assign_public_ip = true
+    security_groups  = [aws_security_group.alb_sg.id]
+  }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.tg.arn
+    container_name   = "bookmyseat"
+    container_port   = 8080
+  }
+
+  depends_on = [aws_lb_listener.listener]
+}
