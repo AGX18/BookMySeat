@@ -25,7 +25,7 @@ public class Movie {
     private String title;
 
 
-    @Lob // Used for TEXT/CLOB data types
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @Column(name = "duration_mins", nullable = false)
