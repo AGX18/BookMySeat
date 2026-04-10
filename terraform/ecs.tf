@@ -40,6 +40,14 @@ resource "aws_ecs_task_definition" "app" {
       { name = "SPRING_DATASOURCE_USERNAME", value = var.db_username },
       { name = "SPRING_DATASOURCE_PASSWORD", value = var.db_password }
     ]
+    logConfiguration = {
+      logDriver = "awslogs"
+      options = {
+        "awslogs-group"         = "/ecs/bookmyshow"
+        "awslogs-region"        = var.aws_region
+        "awslogs-stream-prefix" = "ecs"
+      }
+    }
   }])
 }
 
@@ -48,10 +56,10 @@ resource "aws_security_group" "ecs" {
   vpc_id = module.vpc.vpc_id
 
   ingress {
-    from_port   = 8080
-    to_port     = 8080
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    from_port       = 8080
+    to_port         = 8080
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb.id]
   }
 
   egress {
@@ -74,4 +82,16 @@ resource "aws_ecs_service" "app" {
     security_groups  = [aws_security_group.ecs.id]
     assign_public_ip = true
   }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.app.arn
+    container_name   = "bookmyshow"
+    container_port   = 8080
+  }
+}
+
+
+
+resource "aws_cloudwatch_log_group" "ecs" {
+  name = "/ecs/bookmyshow"
 }
