@@ -2,6 +2,9 @@
 
 A RESTful cinema booking system built with Spring Boot 4. Allows users to browse movies, view showtimes, and book seats. Admins can manage movies, theaters, screens, and showtimes.
 
+## Live URL
+http://bookmyshow-alb-1955688730.us-east-1.elb.amazonaws.com
+
 ---
 
 ## Tech Stack
@@ -225,8 +228,6 @@ The application is deployed on AWS using Terraform.
 - **ALB** — Application Load Balancer for a stable public URL
 - **VPC** — isolated network with public and private subnets
 
-### Live URL
-http://bookmyshow-alb-1955688730.us-east-1.elb.amazonaws.com
 
 ### Deploy
 ```bash
