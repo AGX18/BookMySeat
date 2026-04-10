@@ -2,16 +2,14 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [master]
   pull_request:
-    branches: [ main ]
+    branches: [master]
+  workflow_dispatch:
 
-env:
-  AWS_REGION: us-east-1
-  ECR_REPOSITORY: bookmyseat
-  ECS_CLUSTER: bookmyseat-cluster
-  ECS_SERVICE: bookmyseat-service
-  CONTAINER_NAME: bookmyseat
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
   test:
@@ -30,11 +28,11 @@ jobs:
       - name: Run tests
         run: ./mvnw test
 
-  build-and-deploy:
-    name: Build & Deploy
+  deploy:
+    name: Deploy to ECS
     runs-on: ubuntu-latest
     needs: test
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
 
     steps:
       - uses: actions/checkout@v4
@@ -46,34 +44,26 @@ jobs:
           distribution: 'graalvm-community'
           cache: maven
 
+      - name: Build jar
+        run: ./mvnw clean package -DskipTests
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: arn:aws:iam::366707332695:role/github-actions-role
+          aws-region: us-east-1
 
-      - name: Login to Amazon ECR
-        id: login-ecr
+      - name: Login to ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build and push image to ECR
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
+      - name: Build and push Docker image
         run: |
-          ./mvnw spring-boot:build-image \
-            -DskipTests \
-            -Dspring-boot.build-image.imageName=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+          docker build -t 366707332695.dkr.ecr.us-east-1.amazonaws.com/bookmyshow-app:latest .
+          docker push 366707332695.dkr.ecr.us-east-1.amazonaws.com/bookmyshow-app:latest
 
       - name: Deploy to ECS
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
         run: |
           aws ecs update-service \
-            --cluster $ECS_CLUSTER \
-            --service $ECS_SERVICE \
+            --cluster bookmyshow-cluster \
+            --service bookmyshow-service \
             --force-new-deployment
