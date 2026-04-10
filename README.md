@@ -3,7 +3,7 @@
 A RESTful cinema booking system built with Spring Boot 4. Allows users to browse movies, view showtimes, and book seats. Admins can manage movies, theaters, screens, and showtimes.
 
 ## Live URL
-http://bookmyshow-alb-1955688730.us-east-1.elb.amazonaws.com
+http://bookmyshow-alb-1955688730.us-east-1.elb.amazonaws.com/swagger-ui.html
 
 ---
 
