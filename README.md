@@ -213,3 +213,31 @@ Once the application is running, visit:
 ```
 http://localhost:8080/swagger-ui.html
 ```
+---
+## Deployment
+
+The application is deployed on AWS using Terraform.
+
+### Infrastructure
+- **ECS Fargate** — containerized Spring Boot app, no server management
+- **ECR** — private Docker image registry
+- **RDS PostgreSQL** — managed database in a private subnet
+- **ALB** — Application Load Balancer for a stable public URL
+- **VPC** — isolated network with public and private subnets
+
+### Live URL
+http://bookmyshow-alb-1955688730.us-east-1.elb.amazonaws.com
+
+### Deploy
+```bash
+# Build and push new image
+./mvnw clean package -DskipTests
+docker build -t bookmyshow-app .
+docker tag bookmyshow-app:latest <account-id>.dkr.ecr.us-east-1.amazonaws.com/bookmyshow-app:latest
+docker push <account-id>.dkr.ecr.us-east-1.amazonaws.com/bookmyshow-app:latest
+
+# Force ECS to redeploy
+aws ecs update-service --cluster bookmyshow-cluster --service bookmyshow-service --force-new-deployment
+```
+
+---
