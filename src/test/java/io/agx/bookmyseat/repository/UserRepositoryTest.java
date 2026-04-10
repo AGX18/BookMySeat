@@ -1,6 +1,7 @@
 package io.agx.bookmyseat.repository;
 
 import io.agx.bookmyseat.BaseRepositoryTest;
+import io.agx.bookmyseat.entity.Role;
 import io.agx.bookmyseat.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,7 @@ class UserRepositoryTest extends BaseRepositoryTest {
                 .name("John Doe")
                 .email("john@example.com")
                 .passwordHash("hashedpassword")
+                .role(Role.USER)
                 .build());
     }
 
@@ -65,6 +67,7 @@ class UserRepositoryTest extends BaseRepositoryTest {
                 .name("Jane Doe")
                 .email("jane@example.com")
                 .passwordHash("hashedpassword")
+                .role(Role.USER)
                 .build());
 
         assertThat(user.getId()).isNotNull();

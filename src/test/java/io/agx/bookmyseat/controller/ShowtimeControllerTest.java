@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ShowtimeController.class)
-class ShowtimeControllerTest {
+class ShowtimeControllerTest extends BaseControllerTest {
 
     @Autowired
     private MockMvc mockMvc;

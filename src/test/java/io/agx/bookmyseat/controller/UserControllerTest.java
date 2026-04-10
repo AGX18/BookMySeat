@@ -2,6 +2,7 @@ package io.agx.bookmyseat.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import io.agx.bookmyseat.BaseRepositoryTest;
 import io.agx.bookmyseat.dto.request.CreateUserRequest;
 import io.agx.bookmyseat.dto.response.UserResponse;
 import io.agx.bookmyseat.entity.User;
@@ -28,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UserController.class)
-class UserControllerTest {
+class UserControllerTest extends BaseControllerTest {
 
     @Autowired
     private MockMvc mockMvc;

@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(BookingController.class)
-class BookingControllerTest {
+class BookingControllerTest extends BaseControllerTest {
 
     @Autowired
     private MockMvc mockMvc;

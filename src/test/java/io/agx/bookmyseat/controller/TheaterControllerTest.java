@@ -27,7 +27,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(TheaterController.class)
-class TheaterControllerTest {
+class TheaterControllerTest extends BaseControllerTest {
 
     @Autowired
     private MockMvc mockMvc;

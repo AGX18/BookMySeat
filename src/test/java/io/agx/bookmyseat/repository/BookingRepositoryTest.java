@@ -38,6 +38,7 @@ class BookingRepositoryTest extends BaseRepositoryTest {
                 .name("John Doe")
                 .email("john.bookingtest@example.com")
                 .passwordHash("hashed")
+                .role(Role.USER)
                 .build();
         entityManager.persist(user);
 
